@@ -1,0 +1,6 @@
+^doc$
+^Meta$
+^.*\.Rproj$
+^\.Rproj\.user$
+^.Rhistory$
+^README.md$

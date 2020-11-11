@@ -1,0 +1,151 @@
+---
+title: "UKBBGWAS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ukbb}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  eval = FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Data Mining UK BioBank GWAS Results
+
+We'll be using Dr. Neale's 2nd release of GWAS results. For more information
+(i.e. statistical methods) please see: <http://www.nealelab.is/uk-biobank>. The
+results are available in different files, they are listed in a table called
+"manifest". See available dataframe `neale.manifest` to choose what phenotypes
+you want to download for data mining locally:
+
+```{r setup}
+library(ukbbgwas)
+data(neale.manifest)
+```
+
+Please note that not all rows at `neale.manifest` dataframe correspond to
+phenotypes (i.e. the first 9 rows correspond to essential core files). Also,
+there are phenotypes that correspond to only one sex (i.e. pregnancy), others
+appear to be split between sexes (male and female) to avoid confounding and last
+but not least, there are phenotypes available for both sexes. Uniquely identify
+phenotype files with `Phenotype.Code` and its paired `Sex`.
+
+Some continous phenotypes are in "raw" or "irnt" versions. The second version
+correspond to inverse rank normalized values, giving better residual values in
+the linear model and increasing power with a cost or compromise: a sligth
+increase of standard errors.
+
+## Download Publicly Available Files
+
+> Before proceeding with the downloads, review or set `ukbbgwas.path` option.
+> After loading the package you can check what path is set by issuing:
+> `getOption("ukbbgwas.path")`. If needed, set a new path with:
+> `options(ukbbgwas.path="/some/path")`. This folder will be created on first
+> run and nine essential core files will be downloaded there. This files are
+> described at the [FAQ](https://www.nealelab.is/uk-biobank/faq). A reliable
+> internet connectivity is of highest importance since we don't have hashes to
+> check files integrity.
+
+Define at least one group of phenotypes (identifying them by their phenotype
+code). Here we set the group "example2" with twice the phenotype "Z85" for sexes:
+"male" and "female". It is required to list each phenotype with its
+corresponding sex using a set of paired vectors (i.e. second and third argument
+of `defGroup()` have the same length).
+
+```{r, eval = FALSE}
+defGroup("example2",
+         c("Z85", "Z85"),
+         c("male", "female"))
+```
+
+Phenotypes downloaded in more than one group will be file duplicates. (If disk
+space is an issue for your platform, please consider managing the
+`ukbbgwas.path` folder with an external tool like
+[fslint](https://www.pixelbeat.org/fslint/) and safely replace dupes by
+hardlinks, if your filesystem permits).
+
+### Manage your downloads
+
+List all the phenotypes inside a group with `lsGroup()`:
+
+```{r}
+example_df <- lsGroup("example")
+print(example_df)
+```
+
+## Searching Through Phenotype Groups
+
+The main function for doing searches, `findAtPhenotypes()`, takes three
+arguments:
+
+1. The first one is a dataframe with a row for each of the phenotypes grouped
+together previously by `defGroup()`. The correctly formatted dataframe can
+easily be achieved by issuing `lsGroup()` function.
+
+1. The second argument is one of three character strings, "pval", "coords" or
+"region"; and denotes the mode in which we want to perform our search.
+
+1. The third argument is either (1) a p-value to use as a cutoff threshold, (2)
+a vector of one or multiple SNP position(s) to lookup or (3) a locus, defined as
+a vector of three numbers corresponding to chromosome, start and end positions;
+we'll see them at work in the next examples.
+
+Please consider reading `help(findAtPhenotypes)` after this vignette for further
+details and optional arguments that extend or change functionalities.
+
+### By p-value
+
+```{r, eval = FALSE}
+example_phenotypes <- lsGroup("example")
+pval_result <- findAtPhenotypes(example_phenotypes, "pval", 5e-3)
+```
+
+### By coordinates
+
+Besides changing the second argument of `findAtPhenotypes()` from "pval" to
+"coords", here we give a third argument indicating coordinates in the format
+`chr:position:ref:alt`.
+
+```{r, eval = FALSE}
+coords_result <- findAtPhenotypes(example_phenotypes, "coords", "1:69487:G:A")
+```
+
+The obtained results should further be filtered by p-value using the
+corresponding column. Or you could use an extra argument, `p.threshold` which
+would save memory usage at the resulting data frame since it will filter out
+variants before loading them into the R environment.
+
+#### By coordinates, using rs IDs
+
+There's a helper function, `getVariants()` that retrieves data using any rs ID
+(or vector of rs IDs), returning a dataframe with a convenient column,
+`variant`, which has the SNP coordinates in the appropiate format:
+`chr:position:ref:alt`. This helper function enables us to translate rs IDs into
+coordinates searchable in phenotype files:
+
+```{r, eval = FALSE}
+variant_df <- getVariants("rs568226429")
+coords_from_rs <- variant_df$variant  # "1:69487:G:A"
+coords_result <- findAtPhenotypes(example_phenotypes, "coords", coords_from_rs)
+```
+
+### By region
+
+Last, we change the second argument and search all the results in a given locus.
+Once again, consider using `p.threshold` optional argument to save random access
+memory. See `?findAthPhenotypes`.
+
+```{r, eval = FALSE}
+region_result <- findAtPhenotypes(example_phenotypes, "region", c(5, 34899, 35120))
+```
+
+# Session Info
+
+```{r, eval = TRUE}
+sessionInfo()
+```

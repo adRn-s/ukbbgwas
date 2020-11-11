@@ -1,0 +1,41 @@
+Package: ukbbgwas
+Version: 0.99.0
+Date: 2019-08-27
+Title: UK BioBank GWAS Results
+Description: Explore SNVs associations with traits of UK BioBank. GWAS
+    study results where made publicly available courtesy of Neale\'s Lab
+    on August 1st, 2018. For more information please visit:
+    <http://www.nealelab.is/uk-biobank>
+Author: Adrian E. Salatino, Carlos J. Pirola
+Maintainer: Adrian E. Salatino  <adrian.salatino@conicet.gov.ar>
+biocViews:
+    BiomedicalInformatics,
+    DataImport,
+    Annotation,
+    GenomeAnnotation,
+    VariantAnnotation,
+    GenomeWideAssociation,
+    GeneSignaling,
+    SNP,
+    GenomicVariation,
+    GeneticVariability,
+    Genetics
+Depends: R (>= 3.6.1)
+Imports:
+    data.table
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown,
+    curl,
+    tidyr,
+    biovizBase,
+    ggbio,
+    gviz,
+    sushi,
+    GenomicRanges,
+    biomaRt
+RoxygenNote: 7.1.1
+VignetteBuilder: knitr
+License: Artistic-2.0
+Encoding: UTF-8
