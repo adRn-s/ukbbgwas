@@ -54,16 +54,15 @@ defGroup <- function(group, phenotypes, sexes, index = TRUE, clean = FALSE) {
     data(neale.manifest)
     directorio <- getOption("ukbbgwas.path")
     estaElDir <- !(dir.exists(directorio))
-    estanLos9 <- length(list.files(directorio)) <= 9
-    if (estaElDir || estanLos9) {
+    estanLos9 <- length(list.files(directorio)) <= 22-1  #2nd url is 404...
+    if (estaElDir || !estanLos9) {
       dir.create(directorio, recursive = TRUE)
-      N <- 9  # descarga estos.
-      manifest_select <- strsplit(as.character(
-                                    neale.manifest[seq_len(N), "wget.command"]), " ")
+      manifest_select <- neale.manifest[c(1,3:22), "AWS.File"]
+      N <- nrow(manifest_select)
       for (i in seq_len(N)) {
-          my_file <- file.path(directorio, manifest_select[[i]][4])
+          my_file <- file.path(directorio, strsplit(as.character(manifest_select[i]), "/")[[1]][6])
           checkOnline()
-          utils::download.file(url = manifest_select[[i]][2], destfile = my_file,
+          utils::download.file(url = as.character(manifest_select[i]), destfile = my_file,
                                method = "wget", extra = "-c")
       }
     }
